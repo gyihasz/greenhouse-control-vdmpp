@@ -1,0 +1,41 @@
+class World
+
+instance variables
+public static env : [Environment] := nil;
+
+operations
+ 
+public World: () ==> World
+World() == (
+  env := new Environment("scenario.txt");
+  
+  GHA`Host.AddNode(GHA`TemperatureNode.GetID(),GHA`TemperatureNode.GetType());
+  GHA`Host.AddNode(GHA`HumidityNode.GetID(),GHA`HumidityNode.GetType());
+  GHA`Host.AddNode(GHA`SoilMoistureNode.GetID(),GHA`SoilMoistureNode.GetType());
+  GHA`Host.AddNode(GHA`SmokeNode.GetID(),GHA`SmokeNode.GetType());
+  
+  GHA`Host.AddNode(GHA`HeatingNode.GetID(),GHA`HeatingNode.GetType());
+  GHA`Host.AddNode(GHA`WindowNode.GetID(),GHA`WindowNode.GetType());
+	GHA`Host.AddNode(GHA`WaterValve.GetID(),GHA`WaterValve.GetType());
+	GHA`Host.AddNode(GHA`FireSuppressorValve.GetID(),GHA`FireSuppressorValve.GetType());
+	
+  start(GHA`TemperatureNode);
+  start(GHA`HumidityNode);
+  start(GHA`SmokeNode);
+  start(GHA`SoilMoistureNode);
+  
+  start(GHA`HeatingNode);
+  start(GHA`WindowNode);
+  start(GHA`WaterValve);
+  start(GHA`FireSuppressorValve);
+  
+  start(GHA`Host);
+ );
+
+public Run: () ==> ()
+Run() == (
+  start(env);
+  env.IsFinished();
+ );
+
+end World

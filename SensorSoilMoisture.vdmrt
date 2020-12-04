@@ -1,0 +1,30 @@
+class SoilMoisture is subclass of Sensor
+
+instance variables
+
+  finished : bool := false;
+
+operations
+
+public SoilMoisture: nat * TypeEnums`nodeType * int ==> SoilMoisture
+SoilMoisture (id, pType, pValue) ==
+ (ID := id;
+  type := pType;
+  value := pValue;
+ );
+
+public ReadValue: () ==> ()
+ReadValue() == value := World`env.ReadSoilMoisture();
+
+public IsFinished: () ==> ()
+IsFinished() == skip;
+
+sync
+  per IsFinished => finished;
+
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (ReadValue)
+
+end SoilMoisture

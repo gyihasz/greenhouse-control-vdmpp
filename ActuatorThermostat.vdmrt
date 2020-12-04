@@ -1,0 +1,43 @@
+class Thermostat is subclass of Actuator
+
+instance variables
+
+  finished : bool := false;
+
+operations
+
+public Thermostat: nat * TypeEnums`nodeType ==> Thermostat
+Thermostat (id, pType) ==
+ (ID := id;
+  type := pType;
+  action := <NONE>;
+ );
+
+public Switch: () ==> ()
+Switch() ==
+ (dcl status: TypeEnums`actionType := GetAction();
+  if (status = <INCREMENT>)
+  then World`env.IncTemp()
+  elseif (status = <DECREMENT>)
+  then World`env.DecTemp();
+ );
+
+async public SetAction: TypeEnums`actionType ==> ()
+SetAction(pAction) == action := pAction
+pre (pAction = <INCREMENT>) or (pAction = <DECREMENT>) or (pAction = <NONE>);
+
+public GetAction: () ==> TypeEnums`actionType
+GetAction() == return action;
+
+public IsFinished: () ==> ()
+IsFinished() == skip;
+
+sync
+  per IsFinished => finished;
+  mutex(SetAction, GetAction);
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (Switch)
+
+end Thermostat

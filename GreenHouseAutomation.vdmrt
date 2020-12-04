@@ -1,0 +1,53 @@
+system GHA
+
+instance variables
+
+  cpu1 : CPU := new CPU(<FCFS>, 1E6); -- cpu for host controller
+  
+  cpu2 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
+  cpu3 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
+  cpu4 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
+  cpu5 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
+  
+  cpu6 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
+  cpu7 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
+	cpu8 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
+	cpu9 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
+
+  -- bus connecting host controller and sensors
+  bus1 : BUS := new BUS(<FCFS>, 1E3, {cpu1, cpu2, cpu3, cpu4, cpu5, cpu6, cpu7, cpu8, cpu9});
+
+	-- 																											Target: Temp, Humid, Smoke, Soil Moist
+  public static Host      : HostController 		:= new HostController(20, 75, 0, 40);
+  -------------- SENSORS
+  
+  public static TemperatureNode  	: TemperatureSensor := new TemperatureSensor(1, <TEMPSENSOR>, 20);
+	public static HumidityNode 			: HumiditySensor 	  := new HumiditySensor(2, <HUMIDSENSOR>, 75);
+  public static SmokeNode 				: HumiditySensor 	  := new HumiditySensor(3, <SMOKESENSOR>, 75);
+  public static SoilMoistureNode 	: HumiditySensor 	  := new HumiditySensor(4, <MOISTSENSOR>, 75);
+  
+  -------------- ACTUATORS
+  public static HeatingNode 				: Thermostat 		 			:= new Thermostat(5, <THERMOSTAT>);
+  public static WaterValve 				  : WateringValve 		 	:= new WateringValve(6, <WATERVALVE>);
+  public static FireSuppressorValve : FireSuppressorValve := new FireSuppressorValve(7, <FIRESUPPRESSORVALVE>);
+  public static WindowNode   			  : Window 						 	:= new Window(8, <WINDOW>);
+
+operations
+
+public GHA: () ==> GHA
+GHA() ==(
+
+	cpu1.deploy(Host);
+	
+  cpu2.deploy(TemperatureNode);
+  cpu3.deploy(HumidityNode);
+  cpu4.deploy(SmokeNode);
+  cpu5.deploy(SoilMoistureNode);
+  
+  cpu6.deploy(WaterValve);
+  cpu7.deploy(FireSuppressorValve);
+  cpu8.deploy(WindowNode);
+  cpu9.deploy(HeatingNode); 
+ );
+
+end GHA

@@ -1,0 +1,20 @@
+class Actuator
+
+instance variables
+
+  protected ID     : nat;
+  protected type   : TypeEnums`nodeType;
+  protected action : TypeEnums`actionType;
+
+operations
+
+public GetID: () ==> nat
+GetID() == return ID;
+
+public GetType: () ==> TypeEnums`nodeType
+GetType() == return type;
+
+public Switch: () ==> ()
+Switch() == is subclass responsibility
+
+end Actuator

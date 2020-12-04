@@ -1,0 +1,30 @@
+class SmokeSensor is subclass of Sensor
+
+instance variables
+
+  finished : bool := false;
+
+operations
+
+public SmokeSensor: nat * TypeEnums`nodeType * int ==> SmokeSensor
+SmokeSensor (id, pType, pValue) ==
+ (ID := id;
+  type := pType;
+	value := pValue;
+ );
+
+public ReadValue: () ==> ()
+ReadValue() == value := World`env.ReadSmoke();
+
+public IsFinished: () ==> ()
+IsFinished() == skip;
+
+sync
+  per IsFinished => finished;
+
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (ReadValue)
+
+end SmokeSensor

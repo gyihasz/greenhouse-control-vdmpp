@@ -1,0 +1,24 @@
+class Sensor
+
+instance variables
+
+  protected ID    : nat;
+  protected type  : TypeEnums`nodeType;
+  protected value : int;
+
+operations
+
+public GetID: () ==> nat
+GetID() == return ID;
+
+public GetType: () ==> TypeEnums`nodeType
+GetType() ==
+  return type;
+
+public GetValue: () ==> int
+GetValue() == return value;
+
+public ReadValue: () ==> ()
+ReadValue() == is subclass responsibility
+
+end Sensor

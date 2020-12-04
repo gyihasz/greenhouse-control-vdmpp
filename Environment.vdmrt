@@ -1,0 +1,224 @@
+class Environment
+
+instance variables
+
+  private io       : IO := new IO();
+  private inlines  : seq of inline := [];
+  private outlines : seq of outline := [];
+  private simtime  : nat;
+  private finished : bool := false;
+  private envTemp  : int := 20;
+  private envHumid : int := 75;
+  private envSmoke : nat := 0;
+  private envSoilMoisture : nat := 50;
+--  inv envTemp >= 0;
+--  inv envHumid >= 0;
+
+types
+
+-- Input file: TempIn, HumidIn, TimeIn, SmokeIn, SoilMoistureIn
+public inline	= nat * nat * nat * nat * nat;
+-- Output: Time, TempValue, HumidValue, SmokeValue, SoilMoistureValue
+public outline	= nat * nat * nat * nat * nat;
+
+operations
+ 
+public Environment: seq of char ==> Environment
+Environment(fname) ==
+ (def mk_ (-,mk_(t,input)) = io.freadval[nat * seq of inline](fname) 
+  in
+   (inlines := input;
+    simtime := t;
+    envTemp := 20;
+    envHumid := 75;
+    envSmoke := 0;
+    envSoilMoisture := 50;
+   );
+ )
+pre fname <> []
+post inlines <> [] and simtime > 0;
+
+private CreateSignal: () ==> ()
+CreateSignal() ==
+ (if len inlines > 0
+  then (dcl curtime : nat := time;
+	def mk_ (tempIn, humidIn, timeIn, smokeIn, soilMoistureIn) = hd inlines 
+        in
+         (if timeIn <= curtime
+          then (SetTemp(tempIn);
+                SetHumid(humidIn);
+                SetSmoke(smokeIn);
+                SetSoilMoisture(soilMoistureIn);              
+                inlines := tl inlines;
+                return
+               );
+         );
+       );
+  if (time >= simtime)
+  then (ShowResults();
+        finished := true;
+        return;
+       );
+ );	
+
+private ShowResults: () ==> ()
+ShowResults() ==
+ (IO`print("Time, Temperature, Humidity, Smoke, Soil\n");
+
+  for all i in set inds outlines
+  do
+   (IO`print("\n");
+    IO`print(outlines(i));
+   );  
+ );
+
+--                 Time, Temp, Humid, Smoke, SoilMoisture
+public HandleEvent: nat * nat * nat * nat * nat ==> ()
+HandleEvent(curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue) == (
+	IO`print("Time     -  Temp - Humidity - Smoke - Moisture \n");
+	IO`print(curTime);
+	IO`print(" - ");
+	IO`print(TempValue);
+  IO`print("   -   ");
+	IO`print(HumidValue);
+  IO`print("    -   ");
+	IO`print(SmokeValue);
+  IO`print("   -    ");
+	IO`print(SoilMoistureValue);
+  IO`print("\n");
+  
+  outlines := outlines ^ [mk_ (curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue)];
+);
+
+
+----------------- SETTERS
+public SetTemp: nat ==> ()
+SetTemp(temperature) ==
+ (envTemp := temperature;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+
+public SetHumid: nat ==> ()
+SetHumid(humidity) ==
+ (envHumid := humidity;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+public SetSmoke: nat ==> ()
+SetSmoke(smoke) ==
+ (envSmoke := smoke;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+ public SetSoilMoisture: nat ==> ()
+SetSoilMoisture(soilMoisture) ==
+ (envSoilMoisture := soilMoisture;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+----------------- READERS
+public ReadTemp: () ==> int
+ReadTemp() ==
+  return envTemp;
+
+public ReadHumid: () ==> nat
+ReadHumid() ==
+  return envHumid;
+  
+public ReadSmoke: () ==> nat
+ReadSmoke() ==
+  return envSmoke;
+  
+public ReadSoilMoisture: () ==> nat
+ReadSoilMoisture() ==
+  return envSoilMoisture;
+
+----------------- INCREMENTS
+public IncTemp: () ==> ()
+IncTemp() ==
+ (envTemp := envTemp + 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+
+public IncHumid: () ==> ()
+IncHumid() ==
+ (envHumid := envHumid + 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+ public InvokeSmoke: () ==> ()
+InvokeSmoke() ==
+ (envSmoke := 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+  public IncSoilMoisture: () ==> ()
+IncSoilMoisture() ==
+ (envSoilMoisture := envSoilMoisture + 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+
+----------------- DECREMENTS
+public DecTemp: () ==> ()
+DecTemp() ==
+ (envTemp := envTemp - 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+
+public DecHumid: () ==> ()
+DecHumid() ==
+ (envHumid := envHumid - 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+ public SuppressSmoke: () ==> ()
+SuppressSmoke() ==
+ (envSmoke := 0;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+ 
+  public DecSoilMoisture: () ==> ()
+DecSoilMoisture() ==
+ (envSoilMoisture := envSoilMoisture - 1;
+  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ );
+
+----------------- UTILS
+public RaiseAlarm: () ==> ()
+RaiseAlarm() == 
+skip;
+
+public IsFinished: () ==> ()
+IsFinished() ==
+  skip;
+
+sync
+
+  mutex(IncTemp);
+  mutex(DecTemp);
+  mutex(SetTemp);
+  mutex(ReadTemp, IncTemp, DecTemp, SetTemp);
+  
+  mutex(IncHumid);
+  mutex(DecHumid);
+  mutex(SetHumid);
+  mutex(ReadHumid, IncHumid, DecHumid, SetHumid);
+  
+  mutex(InvokeSmoke);
+  mutex(SuppressSmoke);
+  mutex(SetSmoke);
+  mutex(ReadSmoke, InvokeSmoke, SuppressSmoke, SetSmoke);
+  
+  mutex(IncSoilMoisture);
+  mutex(DecSoilMoisture);
+  mutex(SetSoilMoisture);
+  mutex(ReadSoilMoisture, IncSoilMoisture, DecSoilMoisture, SetSoilMoisture);
+  
+  mutex(HandleEvent);
+  per IsFinished => finished;
+
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (CreateSignal)
+
+end Environment

@@ -1,0 +1,158 @@
+class HostController
+
+values
+
+  private OVERSHOOT_CNT : nat = 2;
+
+instance variables
+
+  private finished    : bool := false;
+
+  private TargetTemp  : nat;
+  private Temp        : nat := 0;
+  
+  private TargetHumid : nat;
+  private Humid       : nat := 0;
+  
+  private TargetMoist : nat;
+  private Moist       : nat := 0;
+  
+  private TargetSmoke : nat;
+  private Smoke       : nat := 0;
+  
+  -- TODO ebben a sensoroknak is benne kellene lenni...
+  -- private NodeList    : map nat to TypeEnums`actuatorType := { |-> };
+  private NodeList    : map nat to TypeEnums`nodeType := { |-> };
+  
+  private Algo        : algType := <NONE>;
+
+  private incTempCnt  : nat := 0;
+  private decTempCnt  : nat := 0;
+  private decHumidCnt : nat := 0;
+
+types   
+
+  public algType = <THTW> | <TTW> | <TT> | <TW> | <HW> | <NONE>;
+
+operations
+
+public HostController: nat * nat * nat * nat ==> HostController
+HostController(target_temp, target_humidity, target_smoke, target_soil_moisture) ==
+ (TargetTemp  := target_temp;
+  TargetHumid := target_humidity;
+  TargetSmoke := target_smoke;
+  TargetMoist := target_soil_moisture;
+ );
+
+public UpdateValues: () ==> ()
+UpdateValues() ==
+ (for all r in set rng NodeList 
+  do
+   (if (r = <HUMIDSENSOR>)
+    then Humid := GHA`HumidityNode.GetValue();
+    if (r = <TEMPSENSOR>)
+    then Temp := GHA`TemperatureNode.GetValue();
+    if (r = <MOISTSENSOR>)
+    then Moist := GHA`SoilMoistureNode.GetValue();
+    if (r = <SMOKESENSOR>)
+    then Smoke := GHA`SmokeNode.GetValue();
+   );
+ );
+
+public GetAlgo: () ==> algType
+GetAlgo() ==
+  return Algo;
+
+public GetTemp: () ==> nat
+GetTemp() ==
+  return Temp;
+
+public GetHumid: () ==> nat
+GetHumid() ==
+  return Humid;
+
+public GetSmoke: () ==> nat
+GetSmoke() ==
+  return Smoke;
+  
+public GetMoist: () ==> nat
+GetMoist() ==
+  return Moist;
+
+public Algorithm: () ==> ()
+Algorithm() ==
+  --cycles(1E11)
+ (if (Humid > TargetHumid)
+  then decHumidCnt := decHumidCnt + 1
+  elseif (Temp > TargetTemp)
+  then decTempCnt := decTempCnt + 1
+  elseif (Temp < TargetTemp)
+  then incTempCnt := incTempCnt + 1;
+--
+--  cases Algo:
+--    <THTW> -> THTWAlgo(),
+--    <TTW>  -> TTWAlgo(),
+--    <TT>   -> TTAlgo(),
+--    <TW>   -> TWAlgo(),
+--    <HW>   -> HWAlgo(),
+--    <NONE> -> return
+--  end
+	run();
+ );
+ 
+ private run : () ==> ()
+ run () == (
+ 		if (incTempCnt >= OVERSHOOT_CNT)
+	  then (GHA`HeatingNode.SetAction(<INCREMENT>);
+				  incTempCnt := 0;)
+  	else if (decTempCnt >= OVERSHOOT_CNT)
+  	then (GHA`HeatingNode.SetAction(<DECREMENT>);
+        	decTempCnt := 0;)
+	  else if (decHumidCnt >= OVERSHOOT_CNT)
+	  then (GHA`WindowNode.SetAction(<OPEN>);
+	        decHumidCnt := 0;)
+	  else (GHA`WindowNode.SetAction(<CLOSE>);
+	        GHA`HeatingNode.SetAction(<NONE>););
+ );
+
+
+public AddNode: nat * TypeEnums`nodeType ==> ()
+AddNode(id, type) ==
+ (NodeList := NodeList ++ {id |-> type};)
+pre id not in set dom NodeList
+post card(dom NodeList) = card(dom NodeList~) + 1;
+
+public RemoveNode: nat * TypeEnums`nodeType ==> ()
+RemoveNode(id, type) ==
+ (if (NodeList(id) = type)
+  then NodeList := {id} <-: NodeList;)
+pre id in set dom NodeList
+post card(dom NodeList) = card(dom NodeList~) - 1;
+
+private PeriodicOp: () ==> ()
+PeriodicOp() ==
+ (UpdateValues();
+  Algorithm();
+ );
+
+public IsFinished: () ==> ()
+IsFinished() == 
+  skip;
+
+public Finish: () ==> ()
+Finish() == 
+  finished := true;
+
+sync
+--   mutex(AddNode,RemoveNode);
+  per IsFinished => finished;
+
+--
+-- Thread definition section
+--
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(1000E6,0,0,0) (PeriodicOp)
+
+end HostController
