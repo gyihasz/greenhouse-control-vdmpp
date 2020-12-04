@@ -1,5 +1,5 @@
 # A greenhouse control system modeled with the Real-Time expansion of VDM++.
-This is a University project for Modeling of Mission-Critical Systems, Aarhus University.
+This is a University project for Modeling of Mission-Critical Systems, Aarhus University. It's based on the original "HomeAutomationRT" example project included in the Overture Tool.
 
 # Setup
 Launch Overture Tool (https://www.overturetool.org/) and set a new run configuration.
