@@ -38,6 +38,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (Switch)
+periodic(10000E6,0,0,0) (Switch)
 
 end Thermostat

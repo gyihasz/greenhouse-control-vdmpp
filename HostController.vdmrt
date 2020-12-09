@@ -24,15 +24,10 @@ instance variables
   -- private NodeList    : map nat to TypeEnums`actuatorType := { |-> };
   private NodeList    : map nat to TypeEnums`nodeType := { |-> };
   
-  private Algo        : algType := <NONE>;
 
   private incTempCnt  : nat := 0;
   private decTempCnt  : nat := 0;
   private decHumidCnt : nat := 0;
-
-types   
-
-  public algType = <THTW> | <TTW> | <TT> | <TW> | <HW> | <NONE>;
 
 operations
 
@@ -42,11 +37,30 @@ HostController(target_temp, target_humidity, target_smoke, target_soil_moisture)
   TargetHumid := target_humidity;
   TargetSmoke := target_smoke;
   TargetMoist := target_soil_moisture;
+  
+  PrintTarget("Temp", TargetTemp);
+  PrintTarget("Humid", TargetHumid);
+  PrintTarget("Smoke", TargetSmoke);
+  PrintTarget("Moist", TargetMoist);
  );
+ 
+public PrintTarget: seq of char * nat ==> ()
+	PrintTarget(numberType, value) == (
+	IO`print("Target ");
+	IO`print(numberType);
+	IO`print(": ");
+	IO`print(value);
+	IO`print("\n");		
+);
 
 public UpdateValues: () ==> ()
-UpdateValues() ==
- (for all r in set rng NodeList 
+UpdateValues() == (
+ Temp := GHA`TemperatureNode.GetValue();
+ Humid := GHA`HumidityNode.GetValue();
+ Moist := GHA`SoilMoistureNode.GetValue();
+ Smoke := GHA`SmokeNode.GetValue();
+ /*
+ for all r in set rng NodeList 
   do
    (if (r = <HUMIDSENSOR>)
     then Humid := GHA`HumidityNode.GetValue();
@@ -57,11 +71,8 @@ UpdateValues() ==
     if (r = <SMOKESENSOR>)
     then Smoke := GHA`SmokeNode.GetValue();
    );
+   */
  );
-
-public GetAlgo: () ==> algType
-GetAlgo() ==
-  return Algo;
 
 public GetTemp: () ==> nat
 GetTemp() ==
@@ -82,27 +93,32 @@ GetMoist() ==
 public Algorithm: () ==> ()
 Algorithm() ==
   --cycles(1E11)
- (if (Humid > TargetHumid)
+ (
+ 
+ /*if (Humid > TargetHumid)
   then decHumidCnt := decHumidCnt + 1
   elseif (Temp > TargetTemp)
   then decTempCnt := decTempCnt + 1
   elseif (Temp < TargetTemp)
   then incTempCnt := incTempCnt + 1;
---
---  cases Algo:
---    <THTW> -> THTWAlgo(),
---    <TTW>  -> TTWAlgo(),
---    <TT>   -> TTAlgo(),
---    <TW>   -> TWAlgo(),
---    <HW>   -> HWAlgo(),
---    <NONE> -> return
---  end
+*/
 	run();
  );
  
  private run : () ==> ()
  run () == (
- 		if (incTempCnt >= OVERSHOOT_CNT)
+ 
+ /*
+		GHA`HeatingNode.Switch();
+		GHA`WindowNode.Switch();
+		GHA`WaterValve.Switch();
+		GHA`FireSuppressorValve.Switch();
+ 
+ */
+ 		
+ 
+ 
+/* 		if (incTempCnt >= OVERSHOOT_CNT)
 	  then (GHA`HeatingNode.SetAction(<INCREMENT>);
 				  incTempCnt := 0;)
   	else if (decTempCnt >= OVERSHOOT_CNT)
@@ -113,6 +129,65 @@ Algorithm() ==
 	        decHumidCnt := 0;)
 	  else (GHA`WindowNode.SetAction(<CLOSE>);
 	        GHA`HeatingNode.SetAction(<NONE>););
+	        
+	        
+  private TargetTemp  : nat;
+  private Temp        : nat := 0;
+  
+  private TargetHumid : nat;
+  private Humid       : nat := 0;
+  
+  private TargetMoist : nat;
+  private Moist       : nat := 0;
+  
+  private TargetSmoke : nat;
+  private Smoke       : nat := 0;
+	        */
+	        dcl tempHigh: bool := TargetTemp + 3 <= Temp;
+	        dcl tempLow: bool := TargetTemp - 3 >= Temp;
+	        
+	        dcl humidHigh: bool := TargetHumid + 3 <= Humid;
+	        dcl humidLow: bool := TargetHumid - 3 >= Humid;
+	        
+	        dcl smokeHigh: bool := TargetSmoke + 3 <= Smoke;
+	        dcl smokeLow: bool := TargetSmoke - 3 >= Smoke;
+	        
+	        dcl moistHigh: bool := TargetMoist + 3 <= Moist;
+	        dcl moistLow: bool := TargetMoist - 3 >= Moist;
+	        
+	        -- IO`print("\n\nCotrolling actuators\n");
+	         
+	        if (tempHigh)
+	        then (GHA`HeatingNode.SetAction(<DECREMENT>);
+	        			GHA`WindowNode.SetAction(<OPEN>);)
+    			else if (tempLow)
+	        then (GHA`HeatingNode.SetAction(<INCREMENT>);
+	        			GHA`WindowNode.SetAction(<CLOSE>););
+	        			
+    			if (humidHigh)
+	        then (GHA`WindowNode.SetAction(<OPEN>);
+	        			GHA`WaterValve.SetAction(<CLOSE>);)
+    			else if (humidLow)
+	        then (GHA`WaterValve.SetAction(<OPEN>);
+	        			GHA`WindowNode.SetAction(<CLOSE>););
+	        			
+    			if (moistHigh)
+	        then (GHA`WaterValve.SetAction(<CLOSE>);)
+    			else if (moistLow)
+	        then (GHA`WaterValve.SetAction(<OPEN>););
+	        
+	        /*
+	        IO`print("TargetSmoke: ");
+	        IO`print(TargetSmoke);
+	        IO`print("       Actual Smoke: ");
+	        IO`print(Smoke);
+	        IO`print("\n");
+	        */
+	        if (smokeHigh)
+	        then (GHA`FireSuppressorValve.SetAction(<OPEN>);)
+    			else if (smokeLow)
+	        then (GHA`FireSuppressorValve.SetAction(<CLOSE>););
+	        
  );
 
 
@@ -153,6 +228,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (PeriodicOp)
+periodic(100000E6,0,0,0) (PeriodicOp)
 
 end HostController

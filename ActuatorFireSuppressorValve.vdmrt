@@ -17,8 +17,11 @@ public Switch: () ==> ()
 Switch() ==
  (dcl status: TypeEnums`actionType := GetAction();
   if (status = <OPEN>)
-  then (World`env.RaiseAlarm();
-  			World`env.SuppressSmoke());
+  then (World`env.DecSmoke();
+  			World`env.RaiseAlarm())
+	else (
+  			IO`print("Fire is suppressed.");
+  )
  );
 
 async public SetAction: TypeEnums`actionType ==> ()
@@ -37,6 +40,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (Switch)
+periodic(10000E6,0,0,0) (Switch)
 
 end FireSuppressorValve

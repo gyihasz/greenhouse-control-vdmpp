@@ -18,7 +18,7 @@ instance variables
   bus1 : BUS := new BUS(<FCFS>, 1E3, {cpu1, cpu2, cpu3, cpu4, cpu5, cpu6, cpu7, cpu8, cpu9});
 
 	-- 																											Target: Temp, Humid, Smoke, Soil Moist
-  public static Host      : HostController 		:= new HostController(20, 75, 0, 40);
+  public static Host      : HostController 		:= new HostController(25, 75, 0, 50);
   -------------- SENSORS
   
   public static TemperatureNode  	: TemperatureSensor := new TemperatureSensor(1, <TEMPSENSOR>, 20);

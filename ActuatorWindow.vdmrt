@@ -17,15 +17,16 @@ public Switch: () ==> ()
 Switch() ==
  (dcl status: TypeEnums`actionType := GetAction();
   if (status = <OPEN>)
-  then (IO`print("- Window -");
+  then (
+  -- IO`print("- Window -");
   			World`env.DecHumid();
         World`env.DecTemp();
         World`env.DecSoilMoisture();)
   else if (status = <CLOSE>) 
-  then (IO`print("-        -");
+  then (
+  -- IO`print("-        -");
   			World`env.IncHumid();
-        World`env.IncTemp();
-        World`env.IncSoilMoisture(););
+        World`env.IncTemp(););
  );
 
 async public SetAction: TypeEnums`actionType ==> ()
@@ -44,6 +45,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (Switch)
+periodic(10000E6,0,0,0) (Switch)
 
 end Window

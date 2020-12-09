@@ -10,22 +10,22 @@ public WateringValve: nat * TypeEnums`nodeType ==> WateringValve
 WateringValve (id, ptype) == ( 
 	ID := id;
   type := ptype;
-  action := <CLOSE>;
+  action := <OPEN>;
  );
 
 public Switch: () ==> ()
 Switch() ==
  (dcl status: TypeEnums`actionType := GetAction();
   if (status = <OPEN>)
-  then (IO`print("- Watering -");
+  then (
+  -- IO`print("- Watering -");
   			World`env.IncHumid();
         World`env.DecTemp();
         World`env.IncSoilMoisture();)
   else if (status = <CLOSE>)
-  then (IO`print("-          -");
-  			World`env.DecHumid();
-        World`env.IncTemp();
-        World`env.DecSoilMoisture(););
+  then (
+  -- IO`print("-          -");
+  			World`env.DecSoilMoisture(););
  );
 
 async public SetAction: TypeEnums`actionType ==> ()
@@ -44,6 +44,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (Switch)
+periodic(10000E6,0,0,0) (Switch)
 
 end WateringValve

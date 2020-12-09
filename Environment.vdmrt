@@ -63,18 +63,32 @@ CreateSignal() ==
 
 private ShowResults: () ==> ()
 ShowResults() ==
- (IO`print("Time, Temperature, Humidity, Smoke, Soil\n");
+ (IO`print("");
+ /*
+ IO`print("Time, Temperature, Humidity, Smoke, Soil\n");
 
   for all i in set inds outlines
   do
    (IO`print("\n");
     IO`print(outlines(i));
-   );  
+   );
+   */  
  );
 
 --                 Time, Temp, Humid, Smoke, SoilMoisture
 public HandleEvent: nat * nat * nat * nat * nat ==> ()
 HandleEvent(curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue) == (
+	IO`print(curTime);
+	IO`print("\t");
+	IO`print(TempValue);
+  IO`print("\t");
+	IO`print(HumidValue);
+  IO`print("\t");
+	IO`print(SmokeValue);
+  IO`print("\t");
+	IO`print(SoilMoistureValue);
+	IO`print("\n");
+	/*
 	IO`print("Time     -  Temp - Humidity - Smoke - Moisture \n");
 	IO`print(curTime);
 	IO`print(" - ");
@@ -86,7 +100,7 @@ HandleEvent(curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue) == (
   IO`print("   -    ");
 	IO`print(SoilMoistureValue);
   IO`print("\n");
-  
+  */
   outlines := outlines ^ [mk_ (curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue)];
 );
 
@@ -147,13 +161,13 @@ IncHumid() ==
  
  public InvokeSmoke: () ==> ()
 InvokeSmoke() ==
- (envSmoke := 1;
+ (envSmoke := 100;
   HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
  );
  
   public IncSoilMoisture: () ==> ()
 IncSoilMoisture() ==
- (envSoilMoisture := envSoilMoisture + 1;
+ (envSoilMoisture := envSoilMoisture + 10;
   HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
  );
 
@@ -170,11 +184,12 @@ DecHumid() ==
   HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
  );
  
- public SuppressSmoke: () ==> ()
-SuppressSmoke() ==
- (envSmoke := 0;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
- );
+ public DecSmoke: () ==> ()
+DecSmoke() ==
+ (if (envSmoke >= 1)
+ 	then(envSmoke := envSmoke - 1;
+    	 HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);)
+  );
  
   public DecSoilMoisture: () ==> ()
 DecSoilMoisture() ==
@@ -204,9 +219,9 @@ sync
   mutex(ReadHumid, IncHumid, DecHumid, SetHumid);
   
   mutex(InvokeSmoke);
-  mutex(SuppressSmoke);
+  mutex(DecSmoke);
   mutex(SetSmoke);
-  mutex(ReadSmoke, InvokeSmoke, SuppressSmoke, SetSmoke);
+  mutex(ReadSmoke, InvokeSmoke, DecSmoke, SetSmoke);
   
   mutex(IncSoilMoisture);
   mutex(DecSoilMoisture);
