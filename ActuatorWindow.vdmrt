@@ -1,9 +1,5 @@
 class Window is subclass of Actuator
 
-instance variables
-
-  finished : bool := false;
-
 operations
 
 public Window: nat * TypeEnums`nodeType ==> Window
@@ -17,15 +13,10 @@ public Switch: () ==> ()
 Switch() ==
  (dcl status: TypeEnums`actionType := GetAction();
   if (status = <OPEN>)
-  then (
-  -- IO`print("- Window -");
-  			World`env.DecHumid();
-        World`env.DecTemp();
-        World`env.DecSoilMoisture();)
+  then (World`env.DecHumid();
+        World`env.DecTemp();)
   else if (status = <CLOSE>) 
-  then (
-  -- IO`print("-        -");
-  			World`env.IncHumid();
+  then (World`env.IncHumid();
         World`env.IncTemp(););
  );
 
@@ -36,15 +27,7 @@ pre (pAct = <OPEN>) or (pAct = <CLOSE>);
 public GetAction: () ==> TypeEnums`actionType
 GetAction() == return action;
 
-public IsFinished: () ==> ()
-IsFinished() == skip;
-
 sync
-  per IsFinished => finished;
   mutex(SetAction, GetAction);
-thread
-
--- period of thread (period, jitter, delay, offset)
-periodic(10000E6,0,0,0) (Switch)
 
 end Window

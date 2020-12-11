@@ -23,8 +23,8 @@ instance variables
   
   public static TemperatureNode  	: TemperatureSensor := new TemperatureSensor(1, <TEMPSENSOR>, 20);
 	public static HumidityNode 			: HumiditySensor 	  := new HumiditySensor(2, <HUMIDSENSOR>, 75);
-  public static SmokeNode 				: HumiditySensor 	  := new HumiditySensor(3, <SMOKESENSOR>, 75);
-  public static SoilMoistureNode 	: HumiditySensor 	  := new HumiditySensor(4, <MOISTSENSOR>, 75);
+  public static SmokeNode 				: SmokeSensor 	  	:= new SmokeSensor(3, <SMOKESENSOR>, 75);
+  public static SoilMoistureNode 	: SoilMoisture   	  := new SoilMoisture(4, <MOISTSENSOR>, 75);
   
   -------------- ACTUATORS
   public static HeatingNode 				: Thermostat 		 			:= new Thermostat(5, <THERMOSTAT>);

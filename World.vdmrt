@@ -19,6 +19,7 @@ World() == (
 	GHA`Host.AddNode(GHA`WaterValve.GetID(),GHA`WaterValve.GetType());
 	GHA`Host.AddNode(GHA`FireSuppressorValve.GetID(),GHA`FireSuppressorValve.GetType());
 	
+	-- IO`print();
   start(GHA`TemperatureNode);
   start(GHA`HumidityNode);
   start(GHA`SmokeNode);

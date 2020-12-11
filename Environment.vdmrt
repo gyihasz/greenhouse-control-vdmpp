@@ -9,17 +9,15 @@ instance variables
   private finished : bool := false;
   private envTemp  : int := 20;
   private envHumid : int := 75;
-  private envSmoke : nat := 0;
-  private envSoilMoisture : nat := 50;
---  inv envTemp >= 0;
---  inv envHumid >= 0;
+  private envSmoke : int := 0;
+  private envSoilMoisture : int := 50;
 
 types
 
 -- Input file: TempIn, HumidIn, TimeIn, SmokeIn, SoilMoistureIn
 public inline	= nat * nat * nat * nat * nat;
 -- Output: Time, TempValue, HumidValue, SmokeValue, SoilMoistureValue
-public outline	= nat * nat * nat * nat * nat;
+public outline	= int * int * int * int * int;
 
 operations
  
@@ -55,53 +53,26 @@ CreateSignal() ==
          );
        );
   if (time >= simtime)
-  then (ShowResults();
-        finished := true;
-        return;
-       );
+  then (finished := true;
+        return;);
  );	
 
-private ShowResults: () ==> ()
-ShowResults() ==
- (IO`print("");
- /*
- IO`print("Time, Temperature, Humidity, Smoke, Soil\n");
-
-  for all i in set inds outlines
-  do
-   (IO`print("\n");
-    IO`print(outlines(i));
-   );
-   */  
- );
-
---                 Time, Temp, Humid, Smoke, SoilMoisture
-public HandleEvent: nat * nat * nat * nat * nat ==> ()
-HandleEvent(curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue) == (
-	IO`print(curTime);
+public HandleEvent: () ==> ()
+HandleEvent() == (
+	IO`print(time);
+	
 	IO`print("\t");
-	IO`print(TempValue);
+	IO`print(envTemp);
   IO`print("\t");
-	IO`print(HumidValue);
+  if(envHumid>100) --Humidity over 100% is not relevant in the graph display.
+  then(IO`print(100);)
+	else(IO`print(envHumid););
   IO`print("\t");
-	IO`print(SmokeValue);
+	IO`print(envSmoke);
   IO`print("\t");
-	IO`print(SoilMoistureValue);
+	IO`print(envSoilMoisture);
 	IO`print("\n");
-	/*
-	IO`print("Time     -  Temp - Humidity - Smoke - Moisture \n");
-	IO`print(curTime);
-	IO`print(" - ");
-	IO`print(TempValue);
-  IO`print("   -   ");
-	IO`print(HumidValue);
-  IO`print("    -   ");
-	IO`print(SmokeValue);
-  IO`print("   -    ");
-	IO`print(SoilMoistureValue);
-  IO`print("\n");
-  */
-  outlines := outlines ^ [mk_ (curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue)];
+  outlines := outlines ^ [mk_ (time, envTemp, envHumid, envSmoke, envSoilMoisture)];
 );
 
 
@@ -109,40 +80,41 @@ HandleEvent(curTime, TempValue, HumidValue, SmokeValue, SoilMoistureValue) == (
 public SetTemp: nat ==> ()
 SetTemp(temperature) ==
  (envTemp := temperature;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
 
 public SetHumid: nat ==> ()
 SetHumid(humidity) ==
  (envHumid := humidity;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
  
 public SetSmoke: nat ==> ()
 SetSmoke(smoke) ==
  (envSmoke := smoke;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
  
  public SetSoilMoisture: nat ==> ()
 SetSoilMoisture(soilMoisture) ==
  (envSoilMoisture := soilMoisture;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
+ 
 ----------------- READERS
 public ReadTemp: () ==> int
 ReadTemp() ==
   return envTemp;
 
-public ReadHumid: () ==> nat
+public ReadHumid: () ==> int
 ReadHumid() ==
   return envHumid;
   
-public ReadSmoke: () ==> nat
+public ReadSmoke: () ==> int
 ReadSmoke() ==
   return envSmoke;
   
-public ReadSoilMoisture: () ==> nat
+public ReadSoilMoisture: () ==> int
 ReadSoilMoisture() ==
   return envSoilMoisture;
 
@@ -150,51 +122,49 @@ ReadSoilMoisture() ==
 public IncTemp: () ==> ()
 IncTemp() ==
  (envTemp := envTemp + 1;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
 
 public IncHumid: () ==> ()
 IncHumid() ==
  (envHumid := envHumid + 1;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
  
  public InvokeSmoke: () ==> ()
 InvokeSmoke() ==
  (envSmoke := 100;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
  
   public IncSoilMoisture: () ==> ()
 IncSoilMoisture() ==
- (envSoilMoisture := envSoilMoisture + 10;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+ (envSoilMoisture := envSoilMoisture + 1;
+  HandleEvent();
  );
 
 ----------------- DECREMENTS
 public DecTemp: () ==> ()
 DecTemp() ==
  (envTemp := envTemp - 1;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
 
 public DecHumid: () ==> ()
 DecHumid() ==
  (envHumid := envHumid - 1;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
  
  public DecSmoke: () ==> ()
 DecSmoke() ==
- (if (envSmoke >= 1)
- 	then(envSmoke := envSmoke - 1;
-    	 HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);)
-  );
+  (envSmoke := envSmoke - 2;
+ 	HandleEvent(););
  
   public DecSoilMoisture: () ==> ()
 DecSoilMoisture() ==
  (envSoilMoisture := envSoilMoisture - 1;
-  HandleEvent(time, envTemp, envHumid, envSmoke, envSoilMoisture);
+  HandleEvent();
  );
 
 ----------------- UTILS
@@ -205,6 +175,7 @@ skip;
 public IsFinished: () ==> ()
 IsFinished() ==
   skip;
+  
 
 sync
 
@@ -234,6 +205,6 @@ sync
 thread
 
 -- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (CreateSignal)
+periodic(10000E6,0,0,0) (CreateSignal)
 
 end Environment

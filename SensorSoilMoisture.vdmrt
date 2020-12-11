@@ -16,15 +16,4 @@ SoilMoisture (id, pType, pValue) ==
 public ReadValue: () ==> ()
 ReadValue() == value := World`env.ReadSoilMoisture();
 
-public IsFinished: () ==> ()
-IsFinished() == skip;
-
-sync
-  per IsFinished => finished;
-
-thread
-
--- period of thread (period, jitter, delay, offset)
-periodic(1000E6,0,0,0) (ReadValue)
-
 end SoilMoisture

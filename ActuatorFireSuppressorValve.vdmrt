@@ -1,9 +1,5 @@
 class FireSuppressorValve is subclass of Actuator
 
-instance variables
-
-  finished : bool := false;
-
 operations
 
 public FireSuppressorValve: nat * TypeEnums`nodeType ==> FireSuppressorValve
@@ -18,10 +14,7 @@ Switch() ==
  (dcl status: TypeEnums`actionType := GetAction();
   if (status = <OPEN>)
   then (World`env.DecSmoke();
-  			World`env.RaiseAlarm())
-	else (
-  			IO`print("Fire is suppressed.");
-  )
+  			World`env.RaiseAlarm());
  );
 
 async public SetAction: TypeEnums`actionType ==> ()
@@ -31,15 +24,7 @@ pre (pAct = <OPEN>) or (pAct = <CLOSE>);
 public GetAction: () ==> TypeEnums`actionType
 GetAction() == return action;
 
-public IsFinished: () ==> ()
-IsFinished() == skip;
-
 sync
-  per IsFinished => finished;
   mutex(SetAction, GetAction);
-thread
-
--- period of thread (period, jitter, delay, offset)
-periodic(10000E6,0,0,0) (Switch)
 
 end FireSuppressorValve

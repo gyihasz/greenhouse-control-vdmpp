@@ -2,15 +2,7 @@ class TypeEnums
 
 types   
 
-/*
-public nodeType   = <TEMPSENSOR> | <HUMIDSENSOR> | <WINDOW> | <THERMOSTAT> | <HOSTCONTROL> | <NONE>;
-public correction = <INC> | <DEC> | <OPEN> | <CLOSE> | <NONE>;
-*/
-/*
-public actuatorType = <WINDOW> | <WATERVALVE> | <FIRESUPPRESSORVALVE>| <THERMOSTAT> | <HOSTCONTROL> | <NONE>;
-public sensorType   = <TEMPSENSOR> | <HUMIDSENSOR> | <SMOKESENSOR> | <MOISTSENSOR> | <NONE>;
-*/
 public nodeType   = <WINDOW> | <WATERVALVE> | <FIRESUPPRESSORVALVE>| <THERMOSTAT> | <HOSTCONTROL> | <NONE> | <TEMPSENSOR> | <HUMIDSENSOR> | <SMOKESENSOR> | <MOISTSENSOR>;
-public actionType   = <INCREMENT> | <DECREMENT> | <OPEN> | <CLOSE> | <NONE>;
+public actionType   = <INCREMENT> | <DECREMENT> | <OPEN> | <CLOSE> | <HALF> | <NONE>;
 
 end TypeEnums

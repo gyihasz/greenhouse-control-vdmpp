@@ -17,4 +17,9 @@ GetType() == return type;
 public Switch: () ==> ()
 Switch() == is subclass responsibility
 
+thread
+
+-- period of thread (period, jitter, delay, offset)
+periodic(4000E6,0,0,0) (Switch)
+
 end Actuator
