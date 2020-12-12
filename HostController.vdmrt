@@ -1,9 +1,5 @@
 class HostController
 
-values
-
-  private OVERSHOOT_CNT : nat = 2;
-
 instance variables
 
   private finished    : bool := false;
@@ -21,103 +17,166 @@ instance variables
   private Smoke       : nat := 0;
   
   private NodeList    : map nat to TypeEnums`nodeType := { |-> };
-  
-
-  private incTempCnt  : nat := 0;
-  private decTempCnt  : nat := 0;
-  private decHumidCnt : nat := 0;
 
 operations
 
 public HostController: nat * nat * nat * nat ==> HostController
-HostController(target_temp, target_humidity, target_smoke, target_soil_moisture) ==
- (TargetTemp  := target_temp;
-  TargetHumid := target_humidity;
-  TargetSmoke := target_smoke;
-  TargetMoist := target_soil_moisture;
-  IO`print("Target Temp\tTarget Humid\tTarge Smoke\tTarget Moist\n");
-  IO`print(TargetTemp);
-	IO`print("\t");
-  IO`print(TargetHumid);
-	IO`print("\t");
-  IO`print(TargetSmoke);
-	IO`print("\t");
-  IO`print(TargetMoist);
-	IO`print("\n");
-	IO`print("Time\tTemp\tHumid\tSmoke\tMoist\n");
-
- );
+	HostController(target_temp, target_humidity, target_smoke, target_soil_moisture) ==(
+		TargetTemp  := target_temp;
+	  TargetHumid := target_humidity;
+	  TargetSmoke := target_smoke;
+	  TargetMoist := target_soil_moisture;
+	  IO`print("Target Temp\tTarget Humid\tTarge Smoke\tTarget Moist\n");
+	  IO`print(TargetTemp);
+		IO`print("\t");
+	  IO`print(TargetHumid);
+		IO`print("\t");
+	  IO`print(TargetSmoke);
+		IO`print("\t");
+	  IO`print(TargetMoist);
+		IO`print("\n");
+		IO`print("Time\tTemp\tHumid\tSmoke\tMoist\n"); -- Header for CSV style console output.
+	);
 
 public UpdateValues: () ==> ()
-UpdateValues() == (
- Temp := GHA`TemperatureNode.GetValue();
- Humid := GHA`HumidityNode.GetValue();
- Moist := GHA`SoilMoistureNode.GetValue();
- Smoke := GHA`SmokeNode.GetValue();
- );
+	UpdateValues() == (
+	 	Temp  := GHA`TemperatureNode.GetValue();
+	 	Humid := GHA`HumidityNode.GetValue();
+	 	Moist := GHA`SoilMoistureNode.GetValue();
+	 	Smoke := GHA`SmokeNode.GetValue();
+	);
 
  private ControlActuators : () ==> ()
- ControlActuators () == (
-
-	        dcl tempHigh: bool := TargetTemp + 3 <= Temp;
-	        dcl tempExtremeLow: bool := TargetTemp - 3 >= Temp;
-	        dcl tempLow: bool := TargetTemp - 1 >= Temp;
-	        
-	        dcl humidHigh: bool := TargetHumid + 5 <= Humid;
-	        dcl humidLow: bool := TargetHumid - 10 >= Humid;
-	        
-	        dcl smokeHigh: bool := TargetSmoke < Smoke;
-	        dcl noSmoke: bool := TargetSmoke = Smoke;
-	        
-	        dcl moistHigh: bool := TargetMoist + 5 <= Moist;
-	        dcl moistLow: bool := TargetMoist -5 >= Moist;
-	         
-	        if (tempHigh)
-	        then (GHA`HeatingNode.SetAction(<DECREMENT>);
-	        			GHA`WindowNode.SetAction(<OPEN>);)
-    			else if (tempExtremeLow)
-	        then (GHA`HeatingNode.SetAction(<INCREMENT>);
-	        			GHA`WindowNode.SetAction(<CLOSE>);)
-    			else if (tempLow)
-	        then (GHA`HeatingNode.SetAction(<HALF>);
-	        			GHA`WindowNode.SetAction(<CLOSE>););
+ 	ControlActuators () == (
+    dcl tempHigh: bool := TargetTemp + 3 <= Temp;
+    dcl tempExtremeLow: bool := TargetTemp - 3 >= Temp;
+    dcl tempLow: bool := TargetTemp - 1 >= Temp;
+    
+    dcl humidHigh: bool := TargetHumid + 5 <= Humid;
+    dcl humidLow: bool := TargetHumid - 10 >= Humid;
+    
+    dcl smokeHigh: bool := TargetSmoke < Smoke;
+    dcl noSmoke: bool := TargetSmoke = Smoke;
+    
+    dcl moistHigh: bool := TargetMoist + 5 <= Moist;
+    dcl moistLow: bool := TargetMoist -5 >= Moist;
+     
+    if (tempHigh) then (
+    	GHA`HeatingNode.SetAction(<DECREMENT>);
+    	GHA`WindowNode.SetAction(<OPEN>);
+  	) else if (tempExtremeLow) then (
+  		GHA`HeatingNode.SetAction(<INCREMENT>);
+    	GHA`WindowNode.SetAction(<CLOSE>);
+  	) else if (tempLow) then (
+    	GHA`HeatingNode.SetAction(<HALF>);
+			GHA`WindowNode.SetAction(<CLOSE>);
+		);
+		
+		if (humidHigh) then (
+			GHA`WindowNode.SetAction(<OPEN>);
+		) else if (humidLow) then (
+    	GHA`WaterValve.SetAction(<HALF>);
+    	GHA`WindowNode.SetAction(<CLOSE>);
+  	);
     			
-    			if (humidHigh)
-	        then (GHA`WindowNode.SetAction(<OPEN>);)
-    			else if (humidLow)
-	        then (GHA`WaterValve.SetAction(<HALF>);
-	        			GHA`WindowNode.SetAction(<CLOSE>););
-	        			
-    			if (moistHigh)
-	        then (GHA`WaterValve.SetAction(<CLOSE>);)
-    			else if (moistLow)
-	        then (GHA`WaterValve.SetAction(<OPEN>););
-	        
-	        if (smokeHigh)
-	        then (GHA`FireSuppressorValve.SetAction(<OPEN>);
-				        GHA`WaterValve.SetAction(<CLOSE>);
-				        GHA`WindowNode.SetAction(<CLOSE>);
-				        GHA`HeatingNode.SetAction(<DECREMENT>);)
-    			else if (noSmoke)
-	        then (GHA`FireSuppressorValve.SetAction(<CLOSE>););
-	        
- );
+		if (moistHigh) then (
+			GHA`WaterValve.SetAction(<CLOSE>);
+		) else if (moistLow) then (
+			GHA`WaterValve.SetAction(<OPEN>);
+		);
+    
+    if (smokeHigh) then (
+    	GHA`FireSuppressorValve.SetAction(<OPEN>);
+	    GHA`WaterValve.SetAction(<CLOSE>);
+	    GHA`WindowNode.SetAction(<CLOSE>);
+	    GHA`HeatingNode.SetAction(<DECREMENT>);
+    ) else if (noSmoke) then (
+    	GHA`FireSuppressorValve.SetAction(<CLOSE>);
+  	);
+);
 
 
 public AddNode: nat * TypeEnums`nodeType ==> ()
-AddNode(id, type) ==
- (NodeList := NodeList ++ {id |-> type};)
+	AddNode(id, type) == (
+		NodeList := NodeList ++ {id |-> type};
+)
 pre id not in set dom NodeList
 post card(dom NodeList) = card(dom NodeList~) + 1;
 
 private PeriodicReadAndControl: () ==> ()
-PeriodicReadAndControl() ==
- (UpdateValues();
-  ControlActuators(););
+	PeriodicReadAndControl() ==(
+		UpdateValues();
+	  ControlActuators();
+	);
+	
+public GetTargetTemp: () ==> nat
+	GetTargetTemp() == return TargetTemp;
+	
+public GetTargetHumid: () ==> nat
+	GetTargetHumid() == return TargetHumid;
+	
+public GetTargetSmoke: () ==> nat
+	GetTargetSmoke() == return TargetSmoke;
+	
+public GetTargetMoist: () ==> nat
+	GetTargetMoist() == return TargetMoist;
+  
+sync mutex(PeriodicReadAndControl);
 
 thread
-
 -- period of thread (period, jitter, delay, offset)
 periodic(100E6,0,0,0) (PeriodicReadAndControl)
 
 end HostController
+
+
+
+class HostControllerTests is subclass of TestCase
+
+	operations
+		public HostControllerTests : seq of char ==> HostControllerTests
+			HostControllerTests(name) == (setName(name););
+		
+		protected TestConstructor : () ==> ()
+			TestConstructor() == (
+				dcl targetTemp  : int := 10;
+				dcl targetHumid : int := 20;
+				dcl targetMoist : int := 30;
+				dcl targetSmoke : int := 40;
+				dcl controller : HostController := new HostController(
+				targetTemp, targetHumid, targetSmoke, targetMoist);
+			  
+			  dcl setTempOk  : bool := targetTemp  = controller.GetTargetTemp();
+			  dcl setHumidOk : bool := targetHumid = controller.GetTargetHumid();
+			  dcl setSmokeOk : bool := targetSmoke = controller.GetTargetSmoke();
+			  dcl setMoistOk : bool := targetMoist = controller.GetTargetMoist();
+			  
+			  dcl constructorWorks : bool := setTempOk and setHumidOk and setSmokeOk and setMoistOk;
+				
+				assertTrue(constructorWorks); 
+			
+			);
+
+		protected RunTests : () ==> ()
+			RunTests() == (
+				TestConstructor();
+			);
+
+end HostControllerTests
+
+class Tests
+	operations
+		public Execute: () ==> ()
+			Execute() == (
+				let tests : set of Test = {new HostControllerTests("HostControllerTest")},
+					ts : TestSuite = new TestSuite(tests),
+					result: TestResult = new TestResult()
+				in
+					(
+						ts.run(result);
+						IO`print(result.toString());
+					);
+			);
+
+
+end Tests

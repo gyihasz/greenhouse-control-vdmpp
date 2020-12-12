@@ -8,7 +8,7 @@ instance variables
   cpu3 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
   cpu4 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
   cpu5 : CPU := new CPU(<FCFS>, 1E6); -- cpu for sensors
-  
+ 
   cpu6 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
   cpu7 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators
 	cpu8 : CPU := new CPU(<FCFS>, 1E6); -- cpu for actuators

@@ -4,7 +4,7 @@ instance variables
 
   protected ID    : nat;
   protected type  : TypeEnums`nodeType;
-  protected value : int;
+  protected value : nat;
 
 operations
 
@@ -15,7 +15,7 @@ public GetType: () ==> TypeEnums`nodeType
 GetType() ==
   return type;
 
-public GetValue: () ==> int
+public GetValue: () ==> nat
 GetValue() == return value;
 
 public ReadValue: () ==> ()

@@ -7,10 +7,10 @@ instance variables
   private outlines : seq of outline := [];
   private simtime  : nat;
   private finished : bool := false;
-  private envTemp  : int := 20;
-  private envHumid : int := 75;
-  private envSmoke : int := 0;
-  private envSoilMoisture : int := 50;
+  private envTemp  : nat := 20;
+  private envHumid : nat := 75;
+  private envSmoke : nat := 0;
+  private envSoilMoisture : nat := 50;
 
 types
 
@@ -18,6 +18,7 @@ types
 public inline	= nat * nat * nat * nat * nat;
 -- Output: Time, TempValue, HumidValue, SmokeValue, SoilMoistureValue
 public outline	= int * int * int * int * int;
+
 
 operations
  
@@ -102,19 +103,19 @@ SetSoilMoisture(soilMoisture) ==
  );
  
 ----------------- READERS
-public ReadTemp: () ==> int
+public ReadTemp: () ==> nat
 ReadTemp() ==
   return envTemp;
 
-public ReadHumid: () ==> int
+public ReadHumid: () ==> nat
 ReadHumid() ==
   return envHumid;
   
-public ReadSmoke: () ==> int
+public ReadSmoke: () ==> nat
 ReadSmoke() ==
   return envSmoke;
   
-public ReadSoilMoisture: () ==> int
+public ReadSoilMoisture: () ==> nat
 ReadSoilMoisture() ==
   return envSoilMoisture;
 
@@ -182,21 +183,25 @@ sync
   mutex(IncTemp);
   mutex(DecTemp);
   mutex(SetTemp);
+  mutex(ReadTemp);
   mutex(ReadTemp, IncTemp, DecTemp, SetTemp);
   
   mutex(IncHumid);
   mutex(DecHumid);
   mutex(SetHumid);
+  mutex(ReadHumid);
   mutex(ReadHumid, IncHumid, DecHumid, SetHumid);
   
   mutex(InvokeSmoke);
   mutex(DecSmoke);
   mutex(SetSmoke);
+  mutex(ReadSmoke);
   mutex(ReadSmoke, InvokeSmoke, DecSmoke, SetSmoke);
   
   mutex(IncSoilMoisture);
   mutex(DecSoilMoisture);
   mutex(SetSoilMoisture);
+  mutex(ReadSoilMoisture);
   mutex(ReadSoilMoisture, IncSoilMoisture, DecSoilMoisture, SetSoilMoisture);
   
   mutex(HandleEvent);
